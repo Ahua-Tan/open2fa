@@ -1,0 +1,21 @@
+:root {
+  font-family: 'HarmonyOS Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #1d2129;
+  background-color: #f5f7fa;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.app-layout {
+  min-height: 100vh;
+}
