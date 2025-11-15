@@ -66,9 +66,15 @@
               </a-button>
             </template>
             <a-alert v-if="!authStore.isAdmin" type="info" class="tip" show-icon>
-              您当前为普通用户，可查看所有离线设备的二次验证信息，若需新增设备请联系超级管理员。
+              您当前为普通用户，可查看所有离线设备的二次验证信息，若需新增或重置请联系超级管理员。
             </a-alert>
-            <DeviceTable :devices="deviceStore.devices" />
+            <DeviceTable
+              :devices="deviceStore.devices"
+              :loading="deviceStore.loading"
+              :is-admin="authStore.isAdmin"
+              :fetch-two-factor="handleFetchTwoFactor"
+              :on-reset="authStore.isAdmin ? handleReset : undefined"
+            />
           </a-card>
         </a-space>
       </div>
@@ -83,7 +89,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { Message } from '@arco-design/web-vue';
 import { IconApps, IconPlus, IconScan } from '@arco-design/web-vue/es/icon';
@@ -99,7 +105,7 @@ const router = useRouter();
 const showAddModal = ref(false);
 const creating = ref(false);
 
-const permissionLabel = computed(() => (authStore.isAdmin ? '添加 + 查询' : '仅查询'));
+const permissionLabel = computed(() => (authStore.isAdmin ? '添加 + 查询 + 重置' : '仅查询'));
 const formattedTime = computed(() => {
   const date = new Date();
   return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date
@@ -111,20 +117,52 @@ const formattedTime = computed(() => {
     .padStart(2, '0')}`;
 });
 
-const handleLogout = () => {
-  authStore.logout();
+onMounted(async () => {
+  if (!authStore.initialized) {
+    await authStore.restoreSession();
+  }
+  await deviceStore.fetchDevices();
+});
+
+watch(
+  () => authStore.isAdmin,
+  async () => {
+    await deviceStore.fetchDevices();
+  }
+);
+
+const handleLogout = async () => {
+  await authStore.logout();
   router.replace({ name: 'login' });
 };
 
-const handleCreate = async ({ serialNumber, label }: { serialNumber: string; label?: string }) => {
+const handleCreate = async ({
+  serialNumber,
+  deviceName,
+  deviceModel,
+  ownerOrg,
+  remark
+}: {
+  serialNumber: string;
+  deviceName: string;
+  deviceModel: string;
+  ownerOrg: string;
+  remark?: string;
+}) => {
   if (!authStore.isAdmin) {
     Message.warning('仅超级管理员可以添加设备');
     return;
   }
   try {
     creating.value = true;
-    const device = deviceStore.addDevice(serialNumber, label);
-    Message.success(`设备 ${device.serialNumber} 创建成功`);
+    const device = await deviceStore.createDevice({
+      deviceSn: serialNumber,
+      deviceModel,
+      deviceName,
+      ownerOrg,
+      remark
+    });
+    Message.success(`设备 ${device.device_sn} 创建成功`);
     showAddModal.value = false;
   } catch (error) {
     if (error instanceof Error && error.message) {
@@ -134,6 +172,22 @@ const handleCreate = async ({ serialNumber, label }: { serialNumber: string; lab
     }
   } finally {
     creating.value = false;
+  }
+};
+
+const handleFetchTwoFactor = async (deviceId: string) => {
+  await deviceStore.ensureTwoFactor(deviceId);
+};
+
+const handleReset = async (deviceId: string) => {
+  try {
+    const result = await deviceStore.resetDevice(deviceId);
+    Message.success(`已重置，新的密钥：${result.secret_masked}`);
+  } catch (error) {
+    if (error instanceof Error && error.message) {
+      throw error;
+    }
+    throw new Error('重置失败，请稍后重试');
   }
 };
 </script>
