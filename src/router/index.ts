@@ -6,9 +6,21 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'dashboard',
-      component: () => import('@/views/DeviceManagementView.vue'),
-      meta: { requiresAuth: true }
+      component: () => import('@/layouts/DashboardShell.vue'),
+      meta: { requiresAuth: true },
+      children: [
+        {
+          path: '',
+          name: 'devices',
+          component: () => import('@/views/DeviceManagementView.vue'),
+          meta: {
+            requiresAuth: true,
+            title: '离线设备管理',
+            subtitle: 'Open2FA 配置中心',
+            menuKey: 'devices'
+          }
+        }
+      ]
     },
     {
       path: '/login',
@@ -22,14 +34,17 @@ const router = createRouter({
   ]
 });
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
+  if (!authStore.initialized) {
+    await authStore.restoreSession();
+  }
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     next({ name: 'login', query: { redirect: to.fullPath } });
     return;
   }
   if (to.name === 'login' && authStore.isAuthenticated) {
-    next({ name: 'dashboard' });
+    next({ name: 'devices' });
     return;
   }
   next();
