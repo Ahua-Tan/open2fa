@@ -4,7 +4,7 @@ import {
   type DeviceCreatePayload,
   type DeviceListItem,
   type PublicDeviceListItem
-} from '@/services/mockApi';
+} from '@/services/mock';
 import { useAuthStore } from './auth';
 
 export interface DeviceRecord {

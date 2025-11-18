@@ -6,9 +6,21 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'dashboard',
-      component: () => import('@/views/DeviceManagementView.vue'),
-      meta: { requiresAuth: true }
+      component: () => import('@/layouts/DashboardShell.vue'),
+      meta: { requiresAuth: true },
+      children: [
+        {
+          path: '',
+          name: 'devices',
+          component: () => import('@/views/DeviceManagementView.vue'),
+          meta: {
+            requiresAuth: true,
+            title: '离线设备管理',
+            subtitle: 'Open2FA 配置中心',
+            menuKey: 'devices'
+          }
+        }
+      ]
     },
     {
       path: '/login',
@@ -32,7 +44,7 @@ router.beforeEach(async (to, from, next) => {
     return;
   }
   if (to.name === 'login' && authStore.isAuthenticated) {
-    next({ name: 'dashboard' });
+    next({ name: 'devices' });
     return;
   }
   next();

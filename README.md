@@ -20,6 +20,11 @@ npm run dev
 
 > 💡 本项目不包含真实后端，仅用于演示 2FA 配置平台的前端界面与交互流程。
 
+
+## 持续集成
+
+仓库已配置 GitHub Actions 工作流（`.github/workflows/ci.yml`），在推送及拉取请求时自动执行 `npm ci` 与 `npm run build`，确保模拟 API 与 UI 界面脚手架的构建流程保持稳定。
+
 ## 预置账号
 
 | 角色         | 用户名 | 密码      |

@@ -15,8 +15,11 @@
       {{ formatDate(record.updatedAt) }}
     </template>
     <template #secret="{ record }">
-      <a-space>
-        <a-typography-text>{{ record.secretMasked || '—' }}</a-typography-text>
+      <a-space align="center">
+        <a-tag v-if="record.secretMasked" color="arcoblue" bordered size="small">
+          {{ record.secretMasked }}
+        </a-tag>
+        <a-typography-text v-else>—</a-typography-text>
         <a-button
           v-if="record.otpAuthUrl"
           type="text"
@@ -45,6 +48,11 @@
             <p class="qr-title">{{ record.deviceName }}</p>
             <p class="qr-subtitle">{{ record.serialNumber }}</p>
             <p class="qr-tip">使用验证器扫描上方二维码</p>
+            <a-descriptions :column="1" size="small" :label-style="{ width: '88px' }">
+              <a-descriptions-item label="设备型号">{{ record.deviceModel }}</a-descriptions-item>
+              <a-descriptions-item label="所属组织">{{ record.ownerOrg }}</a-descriptions-item>
+              <a-descriptions-item label="备注信息">{{ record.remark || '—' }}</a-descriptions-item>
+            </a-descriptions>
           </div>
         </template>
         <template v-else>

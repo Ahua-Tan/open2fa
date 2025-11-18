@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia';
-import { mockApi } from '@/services/mockApi';
-
-export type UserRole = 'admin' | 'user';
+import type { UserRole } from '@/types/auth';
+import { mockApi } from '@/services/mock';
 
 export interface AuthUser {
   id: string;
