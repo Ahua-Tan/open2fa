@@ -68,7 +68,7 @@ const handleSubmit = async () => {
   try {
     loading.value = true;
     await formRef.value?.validate();
-    authStore.login(form.username, form.password);
+    await authStore.login(form.username, form.password);
     Message.success(`欢迎回来，${authStore.currentUser?.username}`);
     const redirect = (route.query.redirect as string) || '/';
     router.replace(redirect);
